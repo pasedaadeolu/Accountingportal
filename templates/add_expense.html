@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h1>Log Expense</h1>
+    <form method="POST">
+        <label for="category">Category:</label><br>
+        <select name="category" id="category" required>
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Software & IT">Software & IT</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Rent">Rent</option>
+            <option value="Travel & Meals">Travel & Meals</option>
+            <option value="Other">Other</option>
+        </select><br><br>
+
+        <label>Description</label><br>
+        <input type="text" name="description" placeholder="e.g. Server hosting subscription" required><br><br>
+
+        <label>Amount ($)</label><br>
+        <input type="number" step="0.01" name="amount" placeholder="0.00" required><br><br>
+
+        <label>Date</label><br>
+        <input type="date" name="date" value="{{ today }}" required><br><br>
+
+        <button type="submit">Save Expense</button>
+        <a href="{{ url_for('expenses_list') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

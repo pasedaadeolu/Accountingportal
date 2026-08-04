@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h2>Edit Payroll Record</h2>
+    <form method="POST">
+        <label for="employee_id">Employee:</label><br>
+        <select name="employee_id" id="employee_id" required>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if emp.id == payroll.employee_id %}selected{% endif %}>
+                    {{ emp.name }}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="month">Month / Pay Period:</label><br>
+        <input type="text" name="month" id="month" value="{{ payroll.month }}" required><br><br>
+
+        <label for="basic_salary">Basic Salary ($):</label><br>
+        <input type="number" step="0.01" name="basic_salary" id="basic_salary" value="{{ payroll.basic_salary }}" required><br><br>
+
+        <label for="allowance">Allowance ($):</label><br>
+        <input type="number" step="0.01" name="allowance" id="allowance" value="{{ payroll.allowance }}"><br><br>
+
+        <label for="deduction">Deduction ($):</label><br>
+        <input type="number" step="0.01" name="deduction" id="deduction" value="{{ payroll.deduction }}"><br><br>
+
+        <label for="status">Status:</label><br>
+        <select name="status" id="status">
+            <option value="Pending" {% if payroll.status == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Processing" {% if payroll.status == 'Processing' %}selected{% endif %}>Processing</option>
+            <option value="Paid" {% if payroll.status == 'Paid' %}selected{% endif %}>Paid</option>
+        </select><br><br>
+
+        <button type="submit">Update Record</button>
+        <a href="{{ url_for('payroll_list') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

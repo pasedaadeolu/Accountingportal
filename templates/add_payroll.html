@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h2>Process Payroll</h2>
+    <form method="POST">
+        <label for="employee_id">Employee:</label><br>
+        <select name="employee_id" id="employee_id" required>
+            <option value="">-- Select Employee --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}">{{ emp.name }} (Base Salary: ${{ emp.salary }})</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="month">Month / Pay Period:</label><br>
+        <input type="text" name="month" id="month" placeholder="e.g. August 2026" required><br><br>
+
+        <label for="basic_salary">Basic Salary ($):</label><br>
+        <input type="number" step="0.01" name="basic_salary" id="basic_salary" required><br><br>
+
+        <label for="allowance">Allowance ($):</label><br>
+        <input type="number" step="0.01" name="allowance" id="allowance" value="0.00"><br><br>
+
+        <label for="deduction">Deduction ($):</label><br>
+        <input type="number" step="0.01" name="deduction" id="deduction" value="0.00"><br><br>
+
+        <label for="status">Status:</label><br>
+        <select name="status" id="status">
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Paid">Paid</option>
+        </select><br><br>
+
+        <button type="submit">Save Record</button>
+        <a href="{{ url_for('payroll_list') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

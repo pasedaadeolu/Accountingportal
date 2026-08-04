@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC Accounting Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; }
+        .sidebar { min-height: 100vh; background-color: #0f172a; color: #fff; }
+        .sidebar .nav-link { color: #94a3b8; padding: 12px 20px; font-weight: 500; border-radius: 8px; margin: 4px 12px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #1e293b; color: #38bdf8; }
+        .main-content { padding: 30px; }
+        .card-stat { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s; }
+        .card-stat:hover { transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+<!-- Inside your Sidebar (near the top or bottom of the sidebar menu) -->
+<div class="d-flex align-items-center gap-2 px-3 py-2 mb-3 bg-dark border-bottom border-secondary">
+    <img src="{{ url_for('static', filename='uploads/' + (session.get('profile_pic', 'default.png'))) }}" 
+         alt="User Avatar" 
+         class="rounded-circle border border-light" 
+         style="width: 36px; height: 36px; object-fit: cover;"
+         onerror="this.src='https://via.placeholder.com/36?text=U'">
+    <div class="text-white text-truncate">
+        <div class="fw-semibold small">{{ session.get('user', 'User') }}</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+    </div>
+</div>
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse px-0">
+            <div class="position-sticky pt-3">
+                <div class="text-center py-3 border-bottom border-secondary mb-3">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i>ABC Accounting
+                    </h5>
+                    <small class="text-muted">Internal Portal</small>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa-solid fa-house me-2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('employees_list') }}"><i class="fa-solid fa-users me-2"></i> Employees</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('payroll_list') }}"><i class="fa-solid fa-wallet me-2"></i> Payroll</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('clients_list') }}"><i class="fa-solid fa-building me-2"></i> Clients</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('invoices_list') }}"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoices</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses_list') }}"><i class="fa-solid fa-receipt me-2"></i> Expenses</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i class="fa-solid fa-chart-pie me-2"></i> Reports & Analytics</a></li>
+                    <li class="nav-item mt-4"><a class="nav-link text-danger" href="{{ url_for('login') }}"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a></li>
+		    <a href="{{ url_for('settings') }}" class="nav-link text-white-50 py-2 px-3"><i class="fa-solid fa-gear me-2"></i> Settings</a>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+<!-- Flash Notification Alerts -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<!-- Chart.js & Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

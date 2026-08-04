@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark">Payroll Processing</h2>
+        <p class="text-muted mb-0">Review compensation disbursements, deductions, and net salary payouts.</p>
+    </div>
+    <a href="{{ url_for('add_payroll') }}" class="btn btn-primary fw-semibold">
+        <i class="fa-solid fa-money-check-dollar me-1"></i> Process Payroll
+    </a>
+</div>
+
+<div class="card card-stat bg-white p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Employee</th>
+                    <th>Base Salary ($)</th>
+                    <th>Deductions ($)</th>
+                    <th>Net Salary ($)</th>
+                    <th>Pay Date</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in payroll_records %}
+                <tr>
+                    <td class="fw-bold text-secondary">#{{ item.id }}</td>
+                    <td class="fw-semibold">{{ item.first_name }} {{ item.last_name }}</td>
+                    <td>${{ "%.2f"|format(item.basic_salary) }}</td>
+                    <td class="text-danger">-${{ "%.2f"|format(item.deductions) }}</td>
+                    <td class="fw-bold text-success">${{ "%.2f"|format(item.net_salary) }}</td>
+                    <td>{{ item.pay_date }}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('edit_payroll', payroll_id=item.id) }}" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <form action="{{ url_for('delete_payroll', payroll_id=item.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete payroll entry?');">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No payroll records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

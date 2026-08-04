@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h1>Financial Summary & Reports</h1>
+    <hr style="margin-bottom: 25px;"><br>
+
+    <!-- Summary Cards Container -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+        
+        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 200px;">
+            <h3 style="margin-top: 0;">Total Revenue</h3>
+            <p style="font-size: 24px; color: green; font-weight: bold;">
+                ${{ "%.2f"|format(total_revenue) }}
+            </p>
+            <small>Collected from paid invoices</small>
+        </div>
+
+        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 200px;">
+            <h3 style="margin-top: 0;">Pending Invoices</h3>
+            <p style="font-size: 24px; color: orange; font-weight: bold;">
+                ${{ "%.2f"|format(total_pending) }}
+            </p>
+            <small>Unpaid client balances</small>
+        </div>
+
+        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 200px;">
+            <h3 style="margin-top: 0;">Payroll Costs</h3>
+            <p style="font-size: 24px; color: #d9534f; font-weight: bold;">
+                ${{ "%.2f"|format(total_payroll) }}
+            </p>
+            <small>Total net salaries paid</small>
+        </div>
+
+        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 200px;">
+            <h3 style="margin-top: 0;">Operational Expenses</h3>
+            <p style="font-size: 24px; color: #d9534f; font-weight: bold;">
+                ${{ "%.2f"|format(total_expenses) }}
+            </p>
+            <small>Hardware, software, rent, etc.</small>
+        </div>
+
+    </div>
+
+    <!-- Profit Loss Breakdown -->
+    <div style="border: 1px solid #ccc; padding: 25px; border-radius: 8px; max-width: 500px;">
+        <h2>Profit & Loss Overview</h2>
+        <p><strong>Total Income:</strong> ${{ "%.2f"|format(total_revenue) }}</p>
+        <p><strong>Total Outgoing Costs:</strong> -${{ "%.2f"|format(total_cost) }}</p>
+        <hr>
+        <h3>
+            Net Profit: 
+            <span style="color: {% if net_profit >= 0 %}green{% else %}red{% endif %};">
+                ${{ "%.2f"|format(net_profit) }}
+            </span>
+        </h3>
+    </div>
+</div>
+{% endblock %}

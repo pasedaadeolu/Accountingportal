@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h2>Edit Employee</h2>
+    <form method="POST">
+        <label>Name</label><br>
+        <input type="text" name="name" value="{{ employee.name }}"><br><br>
+
+        <label>Department</label><br>
+        <input type="text" name="department" value="{{ employee.department }}"><br><br>
+
+        <label>Position</label><br>
+        <input type="text" name="position" value="{{ employee.position }}"><br><br>
+
+        <label>Salary</label><br>
+        <input type="text" name="salary" value="{{ employee.salary }}"><br><br>
+
+        <label>Email</label><br>
+        <input type="email" name="email" value="{{ employee.email }}"><br><br>
+
+        <label>Phone</label><br>
+        <input type="text" name="phone" value="{{ employee.phone }}"><br><br>
+
+        <button type="submit">Save Changes</button>
+        <a href="{{ url_for('employees_list') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

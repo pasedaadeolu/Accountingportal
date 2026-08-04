@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Executive Dashboard</h2>
+        <p class="text-muted small mb-0">Real-time financial performance and business health metrics.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('add_invoice') }}" class="btn btn-primary fw-semibold shadow-sm me-2">
+            <i class="fa-solid fa-plus me-1"></i> New Invoice
+        </a>
+        <a href="{{ url_for('reports') }}" class="btn btn-outline-secondary fw-semibold shadow-sm">
+            <i class="fa-solid fa-file-export me-1"></i> Full Report
+        </a>
+    </div>
+</div>
+
+<!-- Top Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Total Revenue</span>
+                    <h3 class="fw-bold text-success my-1">${{ "%.2f"|format(total_revenue or 0) }}</h3>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-arrow-up me-1"></i> Paid Invoices</span>
+                </div>
+                <div class="bg-success-subtle text-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-sack-dollar fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Pending Invoices</span>
+                    <h3 class="fw-bold text-warning my-1">${{ "%.2f"|format(total_pending or 0) }}</h3>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle small"><i class="fa-solid fa-clock me-1"></i> Awaiting Payment</span>
+                </div>
+                <div class="bg-warning-subtle text-warning rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-file-invoice-dollar fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Payroll Expense</span>
+                    <h3 class="fw-bold text-danger my-1">${{ "%.2f"|format(total_payroll or 0) }}</h3>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle small"><i class="fa-solid fa-users me-1"></i> Staff Compensation</span>
+                </div>
+                <div class="bg-danger-subtle text-danger rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-wallet fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">OpEx</span>
+                    <h3 class="fw-bold text-info my-1">${{ "%.2f"|format(total_expenses or 0) }}</h3>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle small"><i class="fa-solid fa-receipt me-1"></i> Operational Costs</span>
+                </div>
+                <div class="bg-info-subtle text-info rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-chart-line fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Visual Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-bar text-primary me-2"></i>Financial Overview</h5>
+            <div style="position: relative; height:240px;">
+                <canvas id="financialOverviewChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Expense Distribution</h5>
+            <div style="position: relative; height:240px;">
+                <canvas id="expenseDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Recent Activity Table & Quick Actions Panel -->
+<div class="row g-4 mb-4">
+    <!-- Recent Invoices Table -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Invoices</h5>
+                <a href="{{ url_for('invoices_list') }}" class="small fw-semibold text-decoration-none">View All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-muted">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Client</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in recent_invoices %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ inv.invoice_number }}</td>
+                            <td>{{ inv.company_name }}</td>
+                            <td class="fw-semibold">${{ "%.2f"|format(inv.amount) }}</td>
+                            <td>
+                                {% if inv.status == 'Paid' %}
+                                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">Paid</span>
+                                {% elif inv.status == 'Unpaid' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1">Unpaid</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Overdue</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ inv.issue_date }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No recent invoice records.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Shortcuts & System Status -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-3">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bolt text-warning me-2"></i>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('add_employee') }}" class="btn btn-light border text-start fw-semibold py-2">
+                    <i class="fa-solid fa-user-plus text-primary me-2"></i> Add New Employee
+                </a>
+                <a href="{{ url_for('add_payroll') }}" class="btn btn-light border text-start fw-semibold py-2">
+                    <i class="fa-solid fa-money-check-dollar text-success me-2"></i> Process Payroll Entry
+                </a>
+                <a href="{{ url_for('add_expense') }}" class="btn btn-light border text-start fw-semibold py-2">
+                    <i class="fa-solid fa-receipt text-danger me-2"></i> Record Operating Expense
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Active Staff</span>
+                    <h5 class="fw-bold mb-0 text-dark">{{ emp_count }} Employees</h5>
+                </div>
+                <div class="border-start ps-3">
+                    <span class="text-muted small fw-semibold">Active Clients</span>
+                    <h5 class="fw-bold mb-0 text-dark">{{ client_count }} Clients</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Initialization Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ctxBar = document.getElementById('financialOverviewChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Revenue (Paid)', 'Pending Invoices', 'Payroll Costs', 'Operational Expenses'],
+            datasets: [{
+                label: 'USD ($)',
+                data: [
+                    {{ total_revenue or 0 }}, 
+                    {{ total_pending or 0 }}, 
+                    {{ total_payroll or 0 }}, 
+                    {{ total_expenses or 0 }}
+                ],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#06b6d4'],
+                borderRadius: 8,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    const ctxDoughnut = document.getElementById('expenseDistributionChart').getContext('2d');
+    new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+            labels: ['Payroll Costs', 'Operational Expenses'],
+            datasets: [{
+                data: [{{ total_payroll or 0.1 }}, {{ total_expenses or 0.1 }}],
+                backgroundColor: ['#ef4444', '#06b6d4'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+});
+</script>
+{% endblock %}

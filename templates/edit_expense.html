@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div style="padding: 30px;">
+    <h2>Edit Expense #{{ expense.id }}</h2>
+    <form method="POST">
+        <label for="category">Category:</label><br>
+        <select name="category" id="category" required>
+            <option value="Office Supplies" {% if expense.category == 'Office Supplies' %}selected{% endif %}>Office Supplies</option>
+            <option value="Software & IT" {% if expense.category == 'Software & IT' %}selected{% endif %}>Software & IT</option>
+            <option value="Utilities" {% if expense.category == 'Utilities' %}selected{% endif %}>Utilities</option>
+            <option value="Rent" {% if expense.category == 'Rent' %}selected{% endif %}>Rent</option>
+            <option value="Travel & Meals" {% if expense.category == 'Travel & Meals' %}selected{% endif %}>Travel & Meals</option>
+            <option value="Other" {% if expense.category == 'Other' %}selected{% endif %}>Other</option>
+        </select><br><br>
+
+        <label>Description</label><br>
+        <input type="text" name="description" value="{{ expense.description }}" required><br><br>
+
+        <label>Amount ($)</label><br>
+        <input type="number" step="0.01" name="amount" value="{{ expense.amount }}" required><br><br>
+
+        <label>Date</label><br>
+        <input type="date" name="date" value="{{ expense.date }}" required><br><br>
+
+        <button type="submit">Update Expense</button>
+        <a href="{{ url_for('expenses_list') }}">Cancel</a>
+    </form>
+</div>
+{% endblock %}

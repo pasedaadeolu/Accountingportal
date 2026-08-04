@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold text-dark mb-1">Account Settings</h2>
+    <p class="text-muted small">Manage your credentials, profile picture, and interface preferences.</p>
+</div>
+
+<div class="row g-4">
+    <!-- Left Panel: Profile & Avatar -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-user-gear text-primary me-2"></i>Profile Information</h5>
+            
+            <!-- IMPORTANT: enctype="multipart/form-data" allows local image uploads -->
+            <form action="{{ url_for('settings') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="update_profile">
+                
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img src="{{ url_for('static', filename='uploads/' + (user.profile_pic if user and user.profile_pic else 'default.png')) }}" 
+                         alt="Profile Picture" 
+                         class="rounded-circle border border-2 shadow-sm" 
+                         style="width: 80px; height: 80px; object-fit: cover;"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=User';">
+                    <div>
+                        <label class="form-label small fw-semibold text-muted mb-1">Update Profile Picture</label>
+                        <input type="file" name="profile_pic" class="form-control form-control-sm" accept="image/*">
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Supports PNG, JPG, JPEG, or GIF files.</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Username</label>
+                    <input type="text" name="username" class="form-control" value="{{ user.username if user else session.get('user', '') }}" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary fw-semibold shadow-sm">Save Profile Changes</button>
+            </form>
+        </div>
+
+        <!-- Theme & Appearance -->
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-palette text-warning me-2"></i>Appearance Settings</h5>
+            
+            <form action="{{ url_for('settings') }}" method="POST">
+                <input type="hidden" name="action" value="update_preferences">
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Interface Theme</label>
+                    <select name="theme" class="form-select">
+                        <option value="light" {% if session.get('theme') == 'light' %}selected{% endif %}>☀️ Light Mode (Default)</option>
+                        <option value="dark" {% if session.get('theme') == 'dark' %}selected{% endif %}>🌙 Dark Mode</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-outline-secondary fw-semibold">Apply Theme</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Panel: Password & Security -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-lock text-danger me-2"></i>Security & Password</h5>
+            
+            <form action="{{ url_for('settings') }}" method="POST">
+                <input type="hidden" name="action" value="change_password">
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Current Password</label>
+                    <input type="password" name="current_password" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">New Password</label>
+                    <input type="password" name="new_password" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-danger fw-semibold shadow-sm">Update Password</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
