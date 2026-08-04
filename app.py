@@ -1,6 +1,6 @@
-kkimport sqlite3
+import sqlite3
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
 app.secret_key = 'super-secret-key-change-this-in-production'
@@ -8,7 +8,7 @@ app.secret_key = 'super-secret-key-change-this-in-production'
 DB_FILE = 'database.db'
 
 def get_db():
-    """Connects to the database with a timeout to prevent hanging locks."""
+    """Connects to database with timeout to prevent hanging locks."""
     conn = sqlite3.connect(DB_FILE, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
@@ -68,7 +68,6 @@ def utility_processor():
             return "#"
     return dict(url_for=safe_url_for)
 
-# Helper function that guarantees connection closure
 def query_db(query, args=(), one=False):
     conn = get_db()
     cur = conn.cursor()
