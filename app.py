@@ -1,19 +1,23 @@
-import sqlite3
+kkimport sqlite3
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 app.secret_key = 'super-secret-key-change-this-in-production'
 
-# Database Setup & Safe Migration
-DB_FILE = 'database.db'  # Change if your DB uses another name like 'accounting.db'
+DB_FILE = 'database.db'
+
+def get_db():
+    """Connects to the database with a timeout to prevent hanging locks."""
+    conn = sqlite3.connect(DB_FILE, timeout=10)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db():
     """Ensure schema tables and required columns exist on application start."""
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
 
-    # Create Clients Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +28,6 @@ def init_db():
         )
     ''')
 
-    # Create Employees Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +38,6 @@ def init_db():
         )
     ''')
 
-    # Create Payroll Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS payroll (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +48,6 @@ def init_db():
         )
     ''')
 
-    # Safe Schema Migrations (Add missing columns if table already exists)
     try:
         cursor.execute("ALTER TABLE payroll ADD COLUMN allowances REAL DEFAULT 0.0;")
     except sqlite3.OperationalError:
@@ -58,7 +59,6 @@ def init_db():
 # Initialize DB on startup
 init_db()
 
-# Safe url_for Context Processor (Prevents 500 BuildErrors for missing routes)
 @app.context_processor
 def utility_processor():
     def safe_url_for(endpoint, **values):
@@ -68,10 +68,9 @@ def utility_processor():
             return "#"
     return dict(url_for=safe_url_for)
 
-# Helper function for database queries
+# Helper function that guarantees connection closure
 def query_db(query, args=(), one=False):
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     cur = conn.cursor()
     cur.execute(query, args)
     rv = cur.fetchall()
@@ -80,7 +79,6 @@ def query_db(query, args=(), one=False):
     return (rv[0] if rv else None) if one else rv
 
 # Routes
-
 @app.route('/')
 @app.route('/dashboard')
 def dashboard():
@@ -99,7 +97,7 @@ def add_client():
         email = request.form.get('email')
         phone = request.form.get('phone')
         
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
             'INSERT INTO clients (company_name, contact_name, email, phone) VALUES (?, ?, ?, ?)',
@@ -119,7 +117,7 @@ def edit_client(client_id):
         email = request.form.get('email')
         phone = request.form.get('phone')
         
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute(
             'UPDATE clients SET company_name = ?, contact_name = ?, email = ?, phone = ? WHERE id = ?',
@@ -132,7 +130,7 @@ def edit_client(client_id):
 
 @app.route('/delete_client/<int:client_id>', methods=['POST'])
 def delete_client(client_id):
-    conn = sqlite3.connect(DB_FILE)
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM clients WHERE id = ?', (client_id,))
     conn.commit()
@@ -173,4 +171,5 @@ def settings():
     return render_template('settings.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
