@@ -8,6 +8,14 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+@app.context_processor
+def utility_processor():
+    def safe_url_for(endpoint, **values):
+        try:
+            return url_for(endpoint, **values)
+        except Exception:
+            return "#"
+    return dict(url_for=safe_url_for)
 app.secret_key = 'super_secret_accounting_key'
 
 # Upload configuration for user avatars
