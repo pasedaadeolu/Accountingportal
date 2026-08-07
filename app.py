@@ -1,174 +1,117 @@
-import sqlite3
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask_sqlalchemy import SQLAlchemy
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-change-this-in-production'
+app.config['SECRET_KEY'] = 'your_secret_key_here'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///accounting.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-DB_FILE = 'database.db'
+db = SQLAlchemy(app)
 
-def get_db():
-    """Connects to database with timeout to prevent hanging locks."""
-    conn = sqlite3.connect(DB_FILE, timeout=10)
-    conn.row_factory = sqlite3.Row
-    return conn
+# --- Database Models ---
+class Client(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(50), nullable=True)
+    company = db.Column(db.String(100), nullable=True)
 
-def init_db():
-    """Ensure schema tables and required columns exist on application start."""
-    conn = get_db()
-    cursor = conn.cursor()
+class Employee(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.String(100), nullable=False)
+    department = db.Column(db.String(100), nullable=False)
+    salary = db.Column(db.Float, nullable=False, default=0.0)
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS clients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            company_name TEXT NOT NULL,
-            contact_name TEXT,
-            email TEXT,
-            phone TEXT
-        )
-    ''')
+# --- Routes ---
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            email TEXT,
-            role TEXT
-        )
-    ''')
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS payroll (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER,
-            salary REAL DEFAULT 0.0,
-            allowances REAL DEFAULT 0.0,
-            FOREIGN KEY (employee_id) REFERENCES employees (id)
-        )
-    ''')
-
-    try:
-        cursor.execute("ALTER TABLE payroll ADD COLUMN allowances REAL DEFAULT 0.0;")
-    except sqlite3.OperationalError:
-        pass  # Column already exists
-
-    conn.commit()
-    conn.close()
-
-# Initialize DB on startup
-init_db()
-
-@app.context_processor
-def utility_processor():
-    def safe_url_for(endpoint, **values):
-        try:
-            return url_for(endpoint, **values)
-        except Exception:
-            return "#"
-    return dict(url_for=safe_url_for)
-
-def query_db(query, args=(), one=False):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(query, args)
-    rv = cur.fetchall()
-    conn.commit()
-    conn.close()
-    return (rv[0] if rv else None) if one else rv
-
-# Routes
 @app.route('/')
-@app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
-
-@app.route('/clients')
-def clients_list():
-    clients = query_db('SELECT * FROM clients')
-    return render_template('clients.html', clients=clients)
-
-@app.route('/add_client', methods=['GET', 'POST'])
-def add_client():
-    if request.method == 'POST':
-        company_name = request.form.get('company_name')
-        contact_name = request.form.get('contact_name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            'INSERT INTO clients (company_name, contact_name, email, phone) VALUES (?, ?, ?, ?)',
-            (company_name, contact_name, email, phone)
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for('clients_list'))
-    return render_template('add_client.html')
-
-@app.route('/edit_client/<int:client_id>', methods=['GET', 'POST'])
-def edit_client(client_id):
-    client = query_db('SELECT * FROM clients WHERE id = ?', [client_id], one=True)
-    if request.method == 'POST':
-        company_name = request.form.get('company_name')
-        contact_name = request.form.get('contact_name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            'UPDATE clients SET company_name = ?, contact_name = ?, email = ?, phone = ? WHERE id = ?',
-            (company_name, contact_name, email, phone, client_id)
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for('clients_list'))
-    return render_template('edit_client.html', client=client)
-
-@app.route('/delete_client/<int:client_id>', methods=['POST'])
-def delete_client(client_id):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM clients WHERE id = ?', (client_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('clients_list'))
+    # Example metrics for the dashboard cards
+    total_clients = Client.query.count()
+    employees = Employee.query.all()
+    total_payroll = sum(emp.salary for emp in employees) if employees else 0.0
+    
+    return render_template('dashboard.html', 
+                           total_revenue=0.0, 
+                           total_pending=0.0, 
+                           total_payroll=total_payroll, 
+                           total_clients=total_clients)
 
 @app.route('/employees')
-def employees():
-    emp_list = query_db('SELECT * FROM employees')
-    return render_template('employees.html', employees=emp_list)
+def employees_list():
+    employees = Employee.query.all()
+    return render_template('employees.html', employees=employees)
 
 @app.route('/payroll')
 def payroll_list():
-    query = '''
-        SELECT payroll.id, employees.first_name, employees.last_name, 
-               payroll.salary, payroll.allowances
-        FROM payroll
-        LEFT JOIN employees ON payroll.employee_id = employees.id
-        ORDER BY payroll.id DESC
-    '''
-    payroll_records = query_db(query)
-    return render_template('payroll.html', payroll=payroll_records)
+    employees = Employee.query.all()
+    return render_template('payroll.html', employees=employees)
+
+@app.route('/clients')
+def clients_list():
+    clients = Client.query.all()
+    return render_template('clients.html', clients=clients)
 
 @app.route('/invoices')
-def invoices():
+def invoices_list():
     return render_template('invoices.html')
+
+@app.route('/expenses')
+def expenses_list():
+    return render_template('expenses.html')
 
 @app.route('/reports')
 def reports():
     return render_template('reports.html')
 
-@app.route('/expenses')
-def expenses():
-    return render_template('expenses.html')
-
 @app.route('/settings')
 def settings():
     return render_template('settings.html')
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out successfully.', 'info')
+    return redirect(url_for('dashboard'))
+
+# --- Helper Action Routes ---
+@app.route('/clients/add', methods=['GET', 'POST'])
+def add_client():
+    if request.method == 'POST':
+        new_client = Client(
+            name=request.form.get('name'),
+            email=request.form.get('email'),
+            phone=request.form.get('phone'),
+            company=request.form.get('company')
+        )
+        db.session.add(new_client)
+        db.session.commit()
+        flash('Client added successfully!', 'success')
+        return redirect(url_for('clients_list'))
+    return render_template('add_client.html')
+
+@app.route('/employees/add', methods=['GET', 'POST'])
+def add_employee():
+    if request.method == 'POST':
+        new_emp = Employee(
+            name=request.form.get('name'),
+            position=request.form.get('position'),
+            department=request.form.get('department'),
+            salary=float(request.form.get('salary', 0))
+        )
+        db.session.add(new_emp)
+        db.session.commit()
+        flash('Employee added successfully!', 'success')
+        return redirect(url_for('employees_list'))
+    return render_template('add_employee.html')
+
+@app.route('/invoices/add')
+def add_invoice():
+    return render_template('add_invoice.html')
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
